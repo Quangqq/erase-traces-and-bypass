@@ -37,8 +37,7 @@ clean() {
     journalctl --rotate --vacuum-time=1s &>/dev/null
     echo "[+] Đã sạch hoàn toàn"
 }
-# Tự động dọn sau 15 phút nếu không tắt
-(sleep 60 && clean) &
+
 echo "clean" > /usr/bin/clean && chmod +x /usr/bin/clean
 cat > /usr/bin/clean <<'EOF'
 #!/bin/bash
@@ -47,4 +46,3 @@ clean
 EOF
 chmod +x /usr/bin/clean
 echo -e "\033[1;36m[+] Gõ 'clean' bất kỳ lúc nào để xóa sạch dấu vết ngay lập tức!\033[0m"
-echo -e "\033[1;31m Server sẽ tự động sạch sau 60 giây.\033[0m\n"
