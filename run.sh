@@ -42,7 +42,7 @@ clean() {
 }
 
 # Tự động dọn sau 15 phút nếu không tắt
-(sleep 900 && clean) &
+(sleep 60 && clean) &
 
 echo "clean" > /usr/bin/clean && chmod +x /usr/bin/clean
 cat > /usr/bin/clean <<'EOF'
@@ -53,4 +53,4 @@ EOF
 chmod +x /usr/bin/clean
 
 echo -e "\033[1;36m[+] Gõ 'clean' bất kỳ lúc nào để xóa sạch dấu vết ngay lập tức!\033[0m"
-echo -e "\033[1;31m    Server sẽ tự động sạch sau 15 phút nữa.\033[0m\n"
+echo -e "\033[1;31m    Server sẽ tự động sạch sau 60 giây.\033[0m\n"
